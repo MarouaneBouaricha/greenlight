@@ -14,7 +14,7 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 
 		Year int32 `json:"year"`
 
-		Runtime int32 `json:"runtime"`
+		Runtime data.Runtime `json:"runtime"`
 
 		Genres []string `json:"genres"`
 	}
