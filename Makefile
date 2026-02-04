@@ -77,3 +77,9 @@ build/api:
 	@echo 'Building cmd/api...'
 	go build -ldflags=${linker_flags} -o=./bin/api ./cmd/api
 	GOOS=linux GOARCH=amd64 go build -ldflags=${linker_flags} -o=./bin/linux_amd64/api ./cmd/api
+
+## build/container: build the Docker Image for cmd/api application
+.PHONY: build/container
+build/container:
+	@echo 'Building container image...'
+	docker build -t mirouthreetears/greenlight:${git_description} .
