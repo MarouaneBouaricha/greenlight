@@ -1,31 +1,25 @@
-# --- Stage 1: Builder ---
-FROM golang:1.24-alpine AS builder
-
-RUN apk add --no-cache make git build-base ca-certificates tzdata
-
-RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+# Build stage
+FROM golang:1.25.0-alpine AS builder
 
 WORKDIR /app
+
+RUN apk add --no-cache ca-certificates
 
 COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /greenlight ./cmd/api
 
-RUN make audit
+# Runtime stage
+FROM alpine:3.19
 
-RUN CGO_ENABLED=0 make build/api
-
-# --- Stage 2: Runner ---
-FROM scratch
-
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 
-COPY --from=builder /app/bin/linux_amd64/api ./
-
-USER 10001:10001
+COPY --from=builder /greenlight /greenlight
 
 EXPOSE 4000
 
-ENTRYPOINT ["./api"]
+ENTRYPOINT ["/app/greenlight"]
